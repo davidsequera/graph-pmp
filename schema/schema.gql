@@ -1,24 +1,9 @@
 type Mutation{
-    createUser(input: userInput): user
+    signUp(input: signUpInput): user
     editUser(input: userEditInput): user
     deleteUser(id: ID!): user
 }
-input intputLogIn{
-    email: String!
-    password: String!
-}
-input userInput {
-    name: String
-    email: String!
-    password:String!
-}
-input userEditInput {
-    name: String
-    password: String
-    email: String
-}
 type Query{
-    users: [user]
     course(_id: ID!): course
     courses: [course]
     chapter(_id: ID!): chapter
@@ -27,7 +12,22 @@ type Query{
     allLessons: [lesson]
     lesson(_id: ID!): lesson
     lessons(chapter_id: ID!): [lesson]
-
+    users: [user]
+    signIn(input: signInInput): token
+}
+input signInInput{
+    email: String!
+    password: String!
+}
+input signUpInput {
+    name: String!
+    email: String!
+    password:String!
+}
+input userEditInput {
+    name: String
+    password: String
+    email: String
 }
 type course{
     _id: ID!
@@ -52,4 +52,7 @@ type user{
     name: String!
     email: String!
     password:String!
+}
+type token{
+    body: String!
 }

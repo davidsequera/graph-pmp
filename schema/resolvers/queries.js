@@ -2,7 +2,10 @@
 
 const connectDB = require('../../store/db')
 const { ObjectID } = require('mongodb')
-const errorHandler = require('../errorHandler/errorHandler')
+const errorHandler = require('../errorHandler')
+const auth = require('../../auth')
+const bcrypt = require('bcrypt')
+
 
 module.exports ={
         courses: async () =>
@@ -121,5 +124,31 @@ module.exports ={
             errorHandler(error)
                 }
             return users
+        },
+        signIn: async (root, {input}) =>{
+            if(!input.password || !input.email){
+                throw new Error ('Not email or password provided')
+            }
+            const defaults = {
+                name: ''
+            } 
+            console.log(input)
+            const theUser = Object.assign(defaults, input)
+            let db
+            let user
+            let token = {}
+            try{
+                db = await connectDB()
+                user = await db.collection('users').findOne({email: theUser.email})
+                const pass = await bcrypt.compare(theUser.password, user.password)
+                if (pass) {
+                    token.body = auth.sign(user);
+                    // Generar token;
+                }
+            }
+            catch (error){
+                errorHandler(error)
+            }
+            return token
         }
 }

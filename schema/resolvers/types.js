@@ -2,7 +2,7 @@
 
 const connectDB = require('../../store/db')
 const { ObjectID } = require('mongodb')
-const errorHandler = require('../errorHandler/errorHandler')
+const errorHandler = require('../errorHandler')
 
 
 module.exports ={
