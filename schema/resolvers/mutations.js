@@ -23,7 +23,6 @@ module.exports ={
                 newUser._id = user.insertedId
             }
             catch(error){
-                console.log(error)
                 errorHandler(error)
             }
             return newUser

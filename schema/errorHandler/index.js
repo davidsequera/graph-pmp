@@ -5,6 +5,4 @@ function errorHandler(error){
     throw new Error ('Error 404 Not Found')   
 }
 
-module.exports = {
-    errorHandler
-}
+module.exports = errorHandler

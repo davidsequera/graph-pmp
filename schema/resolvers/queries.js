@@ -127,12 +127,11 @@ module.exports ={
         },
         signIn: async (root, {input}) =>{
             if(!input.password || !input.email){
-                throw new Error ('Not email or password provided')
+                errorHandler('Not email or password provided')
             }
             const defaults = {
                 name: ''
             } 
-            console.log(input)
             const theUser = Object.assign(defaults, input)
             let db
             let user
@@ -145,7 +144,8 @@ module.exports ={
                     token.body = auth.sign(user);
                     // Generar token;
                 }
-            }
+                
+            }  
             catch (error){
                 errorHandler(error)
             }
