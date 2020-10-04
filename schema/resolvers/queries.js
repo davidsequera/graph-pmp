@@ -4,10 +4,30 @@ const connectDB = require('../../store/db')
 const { ObjectID } = require('mongodb')
 const errorHandler = require('../errorHandler')
 const auth = require('../../auth')
-const bcrypt = require('bcrypt')
+
+
 
 
 module.exports ={
+        verification: async (root,i ,req) =>{
+            let db
+            let user
+            let token = req.headers.authorization
+            if(!token){errorHandler('No Token Found')}
+            let userInfo = auth.verify(token)
+            console.log(userInfo)
+            let {_id} = userInfo
+            try {
+                db = await connectDB()
+                user = await db.collection('users').findOne({_id : ObjectID(_id)})
+                // user = await db.collection('user').find().toArray()
+            } 
+            catch (error){
+                errorHandler(error)
+            }
+            return user
+
+        },
         courses: async () =>
         {
             let db
@@ -111,6 +131,24 @@ module.exports ={
                 errorHandler(error)
             }
             return lesson
+        },        
+        user: async (root, args, req) =>{
+            let db
+            let user
+            let token = req.headers.authorization
+            if(!token){errorHandler('No Token Found')}
+            let userInfo = auth.verify(token)
+            console.log(userInfo)
+            let {_id} = userInfo
+            try {
+                db = await connectDB()
+                user = await db.collection('users').findOne({_id : ObjectID(_id)})
+                // user = await db.collection('user').find().toArray()
+            } 
+            catch (error){
+                errorHandler(error)
+            }
+            return user
         },
         users: async () =>
         {
@@ -124,31 +162,5 @@ module.exports ={
             errorHandler(error)
                 }
             return users
-        },
-        signIn: async (root, {input}) =>{
-            if(!input.password || !input.email){
-                errorHandler('Not email or password provided')
-            }
-            const defaults = {
-                name: ''
-            } 
-            const theUser = Object.assign(defaults, input)
-            let db
-            let user
-            let token = {}
-            try{
-                db = await connectDB()
-                user = await db.collection('users').findOne({email: theUser.email})
-                const pass = await bcrypt.compare(theUser.password, user.password)
-                if (pass) {
-                    token.body = auth.sign(user);
-                    // Generar token;
-                }
-                
-            }  
-            catch (error){
-                errorHandler(error)
-            }
-            return token
         }
 }

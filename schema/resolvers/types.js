@@ -39,5 +39,22 @@ module.exports ={
                 return lesson
             }
 
+        },
+        user:
+        {
+            lessons: async ({lessons, _id}) =>{
+                let db
+                let viewed
+                try {
+                    db = await connectDB()
+                    viewed = await db.collection('userLessons').find({ user_id: ObjectID(_id)}, {lesson_id: 1}).toArray()
+                    // lesson = await db.collection('lessons').find({ user_id: { $in: viewed } }).toArray()
+                } 
+                catch (error){
+                    errorHandler(error)
+                }
+                return viewed
+            }
         }
 }
+

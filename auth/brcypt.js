@@ -1,8 +1,4 @@
-const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-
-
-const secret = process.env.JWT_SECRET
 
 const crypt = async (user) =>{
     user.password = await bcrypt.hash(user.password, 10)
