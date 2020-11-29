@@ -1,10 +1,12 @@
-const connectDB = require('../../store/db')
-const { ObjectID } = require('mongodb')
+
 const errorHandler = require('../errorHandler')
 const bcrypt = require('bcrypt')
 const auth = require('../../auth')
 
 
+const connection = require('../../store/db')
+const util = require('util')
+const query = util.promisify(connection.query).bind(connection)
 
 module.exports ={
     
@@ -17,12 +19,12 @@ module.exports ={
             } 
             const newUser = Object.assign(defaults, input)
             newUser.password = await bcrypt.hash(newUser.password, 10)
-            let db
             let user
             try{
-                db = await connectDB()
-                user = await db.collection('users').insertOne(newUser)
-                newUser._id = user.insertedId
+                user = await query(`INSERT INTO users SET?`, newUser)
+                console.log(user)
+                // user = await db.collection('users').insertOne(newUser)
+                newUser.id = user.insertId
             }
             catch(error){
                 errorHandler(error)
@@ -33,13 +35,14 @@ module.exports ={
             if(!input.password || !input.email){
                 errorHandler('Not email or password provided')
             }
-            let db
             let user
             const defaults = {auth: false} 
             let token = Object.assign(defaults)
             try{
-                db = await connectDB()
-                user = await db.collection('users').findOne({email: input.email})
+                user = await query(`SELECT * FROM users WHERE email="${input.email}"`)
+                user = await JSON.parse(JSON.stringify(user[0]))
+                console.log(user)
+                // user = await db.collection('users').findOne({email: input.email})
                 const pass = await bcrypt.compare(input.password, user.password)
                 if (pass) {
                     token.body = auth.sign(user);
@@ -56,29 +59,26 @@ module.exports ={
             return token
         },
         editUser: async (root, {id, input}) =>{
-            let db
             let user
             try{
-                db = await connectDB()
-                await db.collection('users').updateOne({_id : ObjectID(id)}, {$set: input})
-                user = await db.collection('users').findOne({_id : ObjectID(id)})
-                console.log(user)
+                await query(`UPDATE users SET ? WHERE id=?`,[input, id])
+                user = await query(`SELECT * FROM users WHERE id=?`, id)
+                // await db.collection('users').updateOne({_id : ObjectID(id)}, {$set: input})
+                // user = await db.collection('users').findOne({_id : ObjectID(id)})
+                // console.log(user)
             }
             catch(error){errorHandler(error)
             }
             return user
         },
-        deleteUser: async (root, {_id}) =>{
-            let db
-            let user
-            let deleted
+        deleteUser: async (root, {id}) =>{
+            let data
             try{
-                db = await connectDB()
-                user = await db.collection('users').findOne({_id : ObjectID(_id)})
-                deleted = await db.collection('users').deleteOne({_id : ObjectID(_id)})
-                if(deleted.deletedCount !== 1 ){
-                    throw new Error ('User not deleted')
-                }
+                user = await query(`SELECT * FROM users WHERE id=${id}`)
+                deleted = await query(`DELETE FROM users WHERE id=${id}`)
+                // user = await db.collection('users').findOne({_id : ObjectID(_id)})
+                // deleted = await db.collection('users').deleteOne({_id : ObjectID(_id)})
+                if(deleted.affectedRows !== 1 )throw new Error ('User not deleted')
             }
             catch(error){errorHandler(error)}
             return user
@@ -91,25 +91,37 @@ module.exports ={
                 viewed: true
             } 
             const lessonViewed = Object.assign(defaults, input)
-            let db
             let userLesson
             let user
             let lesson
             try{
-                db = await connectDB()
-                userLesson = await db.collection('userLessons').findOne({user_id:  ObjectID(lessonViewed.user_id), lesson_id:  ObjectID(lessonViewed.lesson_id)})
+                // userLesson = await db.collection('userLessons').findOne({user_id:  ObjectID(lessonViewed.user_id), lesson_id:  ObjectID(lessonViewed.lesson_id)})
+                userLesson = await query(`SELECT * FROM user_lessons WHERE user_id=? AND lesson_id=? `,[lessonViewed.user_id, lessonViewed.lesson_id]  )
+                // userLesson = await JSON.parse(JSON.stringify(userLesson[0]))
+                userLesson = userLesson[0]
                 if(userLesson){
                     if(userLesson.viewed !== lessonViewed.viewed){
-                        await db.collection('userLessons').updateOne({_id : ObjectID(userLesson._id)}, {$set: {viewed: lessonViewed.viewed}})
-                        userLesson = await db.collection('userLessons').findOne({_id : ObjectID(userLesson._id)})                 
+                        await query(`UPDATE user_lessons SET viewed=? WHERE id=?`,[lessonViewed.viewed, userLesson.id])
+                        userLesson = await query(`SELECT * FROM user_lessons WHERE id=?`,userLesson.id)
+                        userLesson = userLesson[0]
+
+                        // await db.collection('userLessons').updateOne({_id : ObjectID(userLesson._id)}, {$set: {viewed: lessonViewed.viewed}})
+                        // userLesson = await db.collection('userLessons').findOne({_id : ObjectID(userLesson._id)})                 
                     }
                 }else{
-                    user = await db.collection('users').findOne({_id: ObjectID(lessonViewed.user_id)})
-                    lesson = await db.collection('lessons').findOne({_id: ObjectID(lessonViewed.lesson_id)})
+                    user = await query(`SELECT * FROM users WHERE id=${lessonViewed.user_id}`)
+                    user = await JSON.parse(JSON.stringify(user[0]))
+
+                    lesson = await query(`SELECT * FROM lessons WHERE id=${lessonViewed.lesson_id}`)
+                    lesson = await JSON.parse(JSON.stringify(lesson[0]))
+                    // user = await db.collection('users').findOne({_id: ObjectID(lessonViewed.user_id)})
+                    // lesson = await db.collection('lessons').findOne({_id: ObjectID(lessonViewed.lesson_id)})
                     if(!user || !lesson){
                         throw new Error ('Not User or lesson found')
                     }
-                    userLesson = await db.collection('userLessons').insertOne({user_id: ObjectID(lessonViewed.user_id),lesson_id: ObjectID(lessonViewed.lesson_id), viewed: lessonViewed.viewed })
+                    await query(`INSERT INTO user_lessons (user_id, lesson_id, viewed) VALUES (${lessonViewed.user_id},${lessonViewed.lesson_id},${lessonViewed.viewed})`)
+                    userLesson = await query(`SELECT * FROM user_lessons WHERE user_id=${lessonViewed.user_id} AND lesson_id=${lessonViewed.lesson_id}`)
+                    // userLesson = await db.collection('userLessons').insertOne({user_id: ObjectID(lessonViewed.user_id),lesson_id: ObjectID(lessonViewed.lesson_id), viewed: lessonViewed.viewed })
                     userLesson? lessonViewed._id = userLesson.insertedId: new Error ('User Lesson Error')
                     userLesson = lessonViewed 
                 }

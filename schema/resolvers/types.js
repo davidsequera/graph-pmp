@@ -1,20 +1,19 @@
 'use strict'
 
-const connectDB = require('../../store/db')
-const { ObjectID } = require('mongodb')
-const errorHandler = require('../errorHandler')
+const connection = require('../../store/db')
+const util = require('util')
+const query = util.promisify(connection.query).bind(connection)
 
+const errorHandler = require('../errorHandler')
 
 module.exports ={
         course:
         {
-            chapters: async ({chapters, _id}) =>{
-                let db
+            chapters: async ({chapters, id}) =>{
                 let chapter
-                let locIDS
                 try {
-                    db = await connectDB()
-                    chapter = await db.collection('chapters').find({course_id : _id}).toArray()
+                    chapter = await query(`SELECT * FROM chapters WHERE course_id=${id}`)
+                    // chapter = await db.collection('chapters').find({course_id : _id}).toArray()
                 } 
                 catch (error){
                     errorHandler(error)
@@ -25,13 +24,11 @@ module.exports ={
         },
         chapter:
         {
-            lessons: async ({lessons, _id}) =>{
-                let db
+            lessons: async ({lessons, id}) =>{
                 let lesson
                 try {
-                    db = await connectDB()
-                    lesson = await db.collection('lessons').find({chapter_id: ObjectID(_id)}).sort({"_id": 1}).toArray()
-                    // lesson = await db.collection('lessons').find().sort({"_id": 1}).toArray()
+                    lesson = await query(`SELECT * FROM lessons WHERE chapter_id=${id}`)
+                    // lesson = await db.collection('lessons').find({chapter_id: ObjectID(_id)}).sort({"_id": 1}).toArray()
                 } 
                 catch (error){
                     errorHandler(error)
@@ -42,12 +39,12 @@ module.exports ={
         },
         user:
         {
-            lessons: async ({lessons, _id}) =>{
-                let db
+            lessons: async ({lessons, id}) =>{
                 let viewed
                 try {
-                    db = await connectDB()
-                    viewed = await db.collection('userLessons').find({ user_id: ObjectID(_id)}, {lesson_id: 1}).toArray()
+
+                    viewed = await query(`SELECT * FROM user_lessons WHERE user_id=${id}`)
+                    // viewed = await db.collection('userLessons').find({ user_id: ObjectID(_id)}, {lesson_id: 1}).toArray()
                     // lesson = await db.collection('lessons').find({ user_id: { $in: viewed } }).toArray()
                 } 
                 catch (error){

@@ -12,7 +12,7 @@ const port = process.env.port || 8080
 const {readFileSync} = require('fs')
 const {join} = require('path')
 const resolvers = require('./schema/resolvers')
-
+ 
 
 const jwt = require('./auth/index')
 

@@ -1,31 +1,48 @@
 'use strict'
 
-const {MongoClient} = require('mongodb')
-
-const {
-    DB_USER,
-    DB_PASS,
-    DB_HOST,
-    DB_NAME,
-} = process.env
+const mysql = require('mysql') 
+const config = require('../config');
 
 
-const mongoUri = `mongodb+srv://${DB_USER}:${DB_PASS}@${DB_HOST}.mongodb.net/${DB_NAME}?retryWrites=true&w=majority`
+const dbconf = {
+    host: config.mysql.host,
+    user: config.mysql.user,
+    password: config.mysql.password,
+    database: config.mysql.database,
+};
 
-let connection
-async function connectDB () {
-    if (connection) return connection
-  
-    let client
-    try {
-        client = await MongoClient.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true})
-        connection = client.db(DB_NAME)
-    } catch (error) {
-        console.error('Could not connect to db', mongoUri, error)
-        process.exit(1)
-    }
-  
-    return connection
-  }
-  
-  module.exports = connectDB
+let connection;
+
+
+function connectDB(){
+    connection = mysql.createConnection(dbconf)
+    connection.connect((err) => {
+        if (err) {
+            console.error('[db err]', err);
+            setTimeout(connectDB, 2000);
+        } else {
+            console.log('DB Connected!');
+        }
+    });
+    connection.on('error', err => {
+        console.error('[db err]', err);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            connectDB();
+        } else {
+            throw err;
+        }
+    })
+}
+connectDB();
+
+
+// function list(table, id) {
+//     return new Promise( (resolve, reject) => {
+//         connection.query(`SELECT * FROM ${table}`, (err, data) => {
+//             if (err) return reject(err);
+//             resolve(data);
+//         })
+//     })
+// }
+
+module.exports = connection
