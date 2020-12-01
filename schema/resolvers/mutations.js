@@ -110,10 +110,10 @@ module.exports ={
                     }
                 }else{
                     user = await query(`SELECT * FROM users WHERE id=${lessonViewed.user_id}`)
-                    user = await JSON.parse(JSON.stringify(user[0]))
+                    user = user[0]
 
                     lesson = await query(`SELECT * FROM lessons WHERE id=${lessonViewed.lesson_id}`)
-                    lesson = await JSON.parse(JSON.stringify(lesson[0]))
+                    lesson = lesson[0]
                     // user = await db.collection('users').findOne({_id: ObjectID(lessonViewed.user_id)})
                     // lesson = await db.collection('lessons').findOne({_id: ObjectID(lessonViewed.lesson_id)})
                     if(!user || !lesson){
@@ -121,9 +121,9 @@ module.exports ={
                     }
                     await query(`INSERT INTO user_lessons (user_id, lesson_id, viewed) VALUES (${lessonViewed.user_id},${lessonViewed.lesson_id},${lessonViewed.viewed})`)
                     userLesson = await query(`SELECT * FROM user_lessons WHERE user_id=${lessonViewed.user_id} AND lesson_id=${lessonViewed.lesson_id}`)
+                    userLesson = userLesson[0]
+                    console.log('[lessonViewed]', userLesson)
                     // userLesson = await db.collection('userLessons').insertOne({user_id: ObjectID(lessonViewed.user_id),lesson_id: ObjectID(lessonViewed.lesson_id), viewed: lessonViewed.viewed })
-                    userLesson? lessonViewed._id = userLesson.insertedId: new Error ('User Lesson Error')
-                    userLesson = lessonViewed 
                 }
             }
             catch(error){
