@@ -26,7 +26,7 @@ function connectDB(){
     });
     connection.on('error', err => {
         console.error('[db err]', err);
-        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+        if (err.code === 'PROTOCOL_CONNECTION_LOST' || err.code === 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
             connectDB();
         } else {
             throw err;

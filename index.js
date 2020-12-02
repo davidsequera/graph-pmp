@@ -31,12 +31,12 @@ const schema = makeExecutableSchema({typeDefs, resolvers})
 app.use('/api', gqlMiddleware({
     schema: schema,
     rootValue: resolvers,
-    graphiql: true
+    graphiql: false
 }))
 
-// app.use(express.static(join(__dirname, 'build')))
+app.use(express.static(join(__dirname, 'build')))
 
-// app.get('/*', function(req, res){ res.sendFile(join(__dirname, 'build', 'index.html'))})
+app.get('/*', function(req, res){ res.sendFile(join(__dirname, 'build', 'index.html'))})
 
 app.listen(port, () =>{
     console.log(`Server is listening at http://localhost:${port}/api` )
