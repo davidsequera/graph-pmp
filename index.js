@@ -1,6 +1,6 @@
 'use strict'
 const express = require('express')
-const cors = require('cors')
+// const cors = require('cors')
 const compression = require('compression')
 
 require('dotenv').config()
@@ -19,7 +19,7 @@ const jwt = require('./auth/index')
 const app = express()
 
 app.use(compression());
-app.use(cors())
+// app.use(cors())
 
 const typeDefs = readFileSync(
     join(__dirname, 'schema', 'schema.gql'),

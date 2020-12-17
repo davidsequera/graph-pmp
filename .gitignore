@@ -85,3 +85,12 @@ typings/
 .dynamodb/
 .vscode/*
 .env
+.vercel
+ 
+
+#  build
+.build
+
+ 
+#video
+.mp4

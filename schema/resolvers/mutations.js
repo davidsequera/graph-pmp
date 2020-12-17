@@ -36,14 +36,15 @@ module.exports ={
                 errorHandler('Not email or password provided')
             }
             let user
+            let pass
             const defaults = {auth: false} 
             let token = Object.assign(defaults)
             try{
                 user = await query(`SELECT * FROM users WHERE email="${input.email}"`)
-                user = await JSON.parse(JSON.stringify(user[0]))
-                console.log(user)
+                user = user[0]? JSON.parse(JSON.stringify(user[0])) : undefined
                 // user = await db.collection('users').findOne({email: input.email})
-                const pass = await bcrypt.compare(input.password, user.password)
+                if (user) {pass = await bcrypt.compare(input.password, user.password)}
+                else{throw new Error (`User Not found `)}
                 if (pass) {
                     token.body = auth.sign(user);
                     token.auth = true
