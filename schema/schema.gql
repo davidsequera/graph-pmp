@@ -9,14 +9,14 @@ type Query{
     course(id: ID!): course
     courses: [course]
     chapter(id: ID!): chapter
-    allChapters: [chapter]
     chapters(course_id: ID!): [chapter]
-    allLessons: [lesson]
     lesson(id: ID!): lesson
     lessons(chapter_id: ID!): [lesson]
-    users: [user]
     user: user
-    verification: user
+    #remove
+    allChapters: [chapter]
+    allLessons: [lesson]
+    users: [user]
 }
 input signInInput{
     email: String!
@@ -40,6 +40,7 @@ input lessonViewedInput{
 type course{
     id: ID!
     name: String!
+    creation: String!
     chapters: [chapter]
 }
 type chapter{
@@ -59,8 +60,12 @@ type user{
     id: ID!
     name: String!
     email: String!
-    password:String!
+    date: String!
+    creation: String!
+    #eliminar el password
+    password: String!
     lessons: [userLesson]
+    courses: [userCourse]
 }
 type token{
     auth: Boolean!
@@ -71,4 +76,11 @@ type userLesson{
     user_id: ID!
     lesson_id: ID!
     viewed: Boolean!
+    date: String!
+}
+type userCourse{
+    id: ID!
+    name: String!
+    value: Int
+    total: Int
 }

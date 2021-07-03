@@ -1,8 +1,8 @@
 'use strict'
 
-function errorHandler(error){
+function errorHandler(error, message){
     console.error(error)
-    throw new Error ('Error 404 Not Found')   
+    throw new Error (message || '404 Not Found')   
 }
 
 module.exports = errorHandler

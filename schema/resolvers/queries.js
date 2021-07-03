@@ -10,25 +10,6 @@ const auth = require('../../auth')
 
 
 module.exports ={
-        verification: async (root,i ,req) =>{
-            let user
-            let token = req.headers.authorization
-            if(!token){errorHandler('No Token Found')}
-            let userInfo = auth.verify(token)
-            console.log(userInfo)
-            let {id} = userInfo
-            try {
-                user = await query(`SELECT * FROM users WHERE id=${id}`)
-                user = await JSON.parse(JSON.stringify(user[0]))
-                
-                // user = await db.collection('users').findOne({_id : ObjectID(id)})
-            } 
-            catch (error){
-                errorHandler(error)
-            }
-            return user
-
-        },
         courses: async () =>
         {
             let courses
@@ -43,13 +24,12 @@ module.exports ={
         course: async (root, {id}) =>{
             let course
             try {
-                course = await query(`SELECT * FROM courses WHERE id=${id}`)
+                course = await query(`SELECT * FROM courses WHERE id='${id}'`)
                 course = await course[0]
             } 
             catch (error){
                 errorHandler(error)
             }
-            console.log(course)
             return course
         },
         allChapters: async () =>{
@@ -63,24 +43,15 @@ module.exports ={
             }
             return chapters
         },
-        // allChapters: async () =>{
-        //     let connection = await connectDB()
-        //     return new Promise( (resolve, reject) => {
-        //         connection.query(`SELECT * FROM chapters`, (err, data) => {
-        //             if (err) return reject(err);
-        //             resolve(data);
-        //         })
-        //     })
-        // },
         chapters: async (root, {course_id}) =>{
                 let chapters
                 try {
-                    chapters = await query(`SELECT * FROM chapters WHERE course_id=${course_id}`)
-
+                    chapters = await query(`SELECT * FROM chapters WHERE course_id='${course_id}'`)
+                    if (chapters.length === 0) throw new Error('No Courses Found')
                     // chapters = await db.collection('chapters').find({course_id : ObjectID(course_id)}).sort({_id : 1}).toArray()
                 } 
                 catch (error){
-                    errorHandler(error)
+                    errorHandler(error, error)
                 }
                 return chapters
         },
@@ -88,7 +59,7 @@ module.exports ={
             let chapter
             try {
 
-                chapter = await query(`SELECT * FROM chapters WHERE id=${id}`) 
+                chapter = await query(`SELECT * FROM chapters WHERE id='${id}'`) 
                 chapter = chapter[0]
 
                 // chapter = await db.collection('chapters').findOne({_id : ObjectID(_id)})
@@ -101,7 +72,7 @@ module.exports ={
         lessons: async (root, {id}) =>{
             let lessons
             try {
-                lessons = await query(`SELECT * FROM lessons WHERE chapter_id=${id}`)
+                lessons = await query(`SELECT * FROM lessons WHERE chapter_id='${id}'`)
                 // lessons = await db.collection('lessons').find({chapter_id : ObjectID(id)}).toArray()
             } 
             catch (error){
@@ -123,7 +94,7 @@ module.exports ={
         lesson: async (root, {id}) =>{
             let lesson
             try {
-                lesson = await query(`SELECT * FROM lessons WHERE id=${id}`)
+                lesson = await query(`SELECT * FROM lessons WHERE id='${id}'`)
                 lesson = lesson[0]
                 // lesson = await db.collection('lessons').findOne({_id : ObjectID(id)})
             } 
@@ -137,7 +108,6 @@ module.exports ={
             let token = req.headers.authorization
             if(!token){errorHandler('No Token Found')}
             let userInfo = auth.verify(token)
-            console.log(userInfo)
             let {id} = userInfo
             try {
                 user = await query(`SELECT * FROM users WHERE id=?`, id)

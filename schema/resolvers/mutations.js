@@ -9,7 +9,6 @@ const util = require('util')
 const query = util.promisify(connection.query).bind(connection)
 
 module.exports ={
-    
         signUp: async (root, {input}) =>{
             if(!input.password || !input.email){
                 throw new Error ('Not email or password provided')
@@ -22,12 +21,11 @@ module.exports ={
             let user
             try{
                 user = await query(`INSERT INTO users SET?`, newUser)
-                console.log(user)
                 // user = await db.collection('users').insertOne(newUser)
                 newUser.id = user.insertId
             }
             catch(error){
-                errorHandler(error)
+                errorHandler(error, 'Error Creating User')
             }
             return newUser
         },
@@ -46,6 +44,7 @@ module.exports ={
                 if (user) {pass = await bcrypt.compare(input.password, user.password)}
                 else{throw new Error (`User Not found `)}
                 if (pass) {
+                    await query(`UPDATE users SET date=now() WHERE id=?`,user.id)
                     token.body = auth.sign(user);
                     token.auth = true
                     // Generar token;
@@ -75,8 +74,8 @@ module.exports ={
         deleteUser: async (root, {id}) =>{
             let data
             try{
-                user = await query(`SELECT * FROM users WHERE id=${id}`)
-                deleted = await query(`DELETE FROM users WHERE id=${id}`)
+                user = await query(`SELECT * FROM users WHERE id='${id}'`)
+                deleted = await query(`DELETE FROM users WHERE id='${id}'`)
                 // user = await db.collection('users').findOne({_id : ObjectID(_id)})
                 // deleted = await db.collection('users').deleteOne({_id : ObjectID(_id)})
                 if(deleted.affectedRows !== 1 )throw new Error ('User not deleted')
@@ -102,7 +101,7 @@ module.exports ={
                 userLesson = userLesson[0]
                 if(userLesson){
                     if(userLesson.viewed !== lessonViewed.viewed){
-                        await query(`UPDATE user_lessons SET viewed=? WHERE id=?`,[lessonViewed.viewed, userLesson.id])
+                        await query(`UPDATE user_lessons SET viewed=?,date=now() WHERE id=?`,[lessonViewed.viewed, userLesson.id])
                         userLesson = await query(`SELECT * FROM user_lessons WHERE id=?`,userLesson.id)
                         userLesson = userLesson[0]
 
@@ -110,20 +109,19 @@ module.exports ={
                         // userLesson = await db.collection('userLessons').findOne({_id : ObjectID(userLesson._id)})                 
                     }
                 }else{
-                    user = await query(`SELECT * FROM users WHERE id=${lessonViewed.user_id}`)
+                    user = await query(`SELECT * FROM users WHERE id='${lessonViewed.user_id}'`)
                     user = user[0]
 
-                    lesson = await query(`SELECT * FROM lessons WHERE id=${lessonViewed.lesson_id}`)
+                    lesson = await query(`SELECT * FROM lessons WHERE id='${lessonViewed.lesson_id}'`)
                     lesson = lesson[0]
                     // user = await db.collection('users').findOne({_id: ObjectID(lessonViewed.user_id)})
                     // lesson = await db.collection('lessons').findOne({_id: ObjectID(lessonViewed.lesson_id)})
                     if(!user || !lesson){
                         throw new Error ('Not User or lesson found')
                     }
-                    await query(`INSERT INTO user_lessons (user_id, lesson_id, viewed) VALUES (${lessonViewed.user_id},${lessonViewed.lesson_id},${lessonViewed.viewed})`)
-                    userLesson = await query(`SELECT * FROM user_lessons WHERE user_id=${lessonViewed.user_id} AND lesson_id=${lessonViewed.lesson_id}`)
+                    await query(`INSERT INTO user_lessons (user_id, lesson_id, viewed,date) VALUES ('${lessonViewed.user_id}','${lessonViewed.lesson_id}',${lessonViewed.viewed}, now())`)
+                    userLesson = await query(`SELECT * FROM user_lessons WHERE user_id='${lessonViewed.user_id}' AND lesson_id='${lessonViewed.lesson_id}'`)
                     userLesson = userLesson[0]
-                    console.log('[lessonViewed]', userLesson)
                     // userLesson = await db.collection('userLessons').insertOne({user_id: ObjectID(lessonViewed.user_id),lesson_id: ObjectID(lessonViewed.lesson_id), viewed: lessonViewed.viewed })
                 }
             }
