@@ -4,8 +4,7 @@ const cors = require('cors')
 const compression = require('compression')
 
 require('dotenv').config()
-const {graphql, buildSchema} = require('graphql')
-const {makeExecutableSchema} = require('graphql-tools')
+const {makeExecutableSchema} = require('@graphql-tools/schema')
 const gqlMiddleware = require('express-graphql')
 const port = process.env.port || 8080
 
@@ -27,7 +26,6 @@ app.get(/\/video\/.*/, function(req, res){
       res.status(400).send("Requires Range header");
     }
     
-  
     // get video stats (about 61MB)
     const absolutePath = "D:\\videos\\"
     const videoPath = (decodeURIComponent(req.url)).slice(7).replace("%20", " ");
@@ -65,7 +63,7 @@ const typeDefs = readFileSync(
 
 const schema = makeExecutableSchema({typeDefs, resolvers})
 
-app.use('/api', gqlMiddleware({
+app.use('/api', gqlMiddleware.graphqlHTTP({
     schema: schema,
     rootValue: resolvers,
     graphiql: true

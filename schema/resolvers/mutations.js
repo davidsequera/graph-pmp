@@ -41,8 +41,12 @@ module.exports ={
                 user = await query(`SELECT * FROM users WHERE email="${input.email}"`)
                 user = user[0]? JSON.parse(JSON.stringify(user[0])) : undefined
                 // user = await db.collection('users').findOne({email: input.email})
-                if (user) {pass = await bcrypt.compare(input.password, user.password)}
-                else{throw new Error (`User Not found `)}
+                if (user) {
+                    pass = await bcrypt.compare(input.password, user.password)
+                }
+                else{
+                    throw new Error (`User Not found `)
+                }
                 if (pass) {
                     await query(`UPDATE users SET date=now() WHERE id=?`,user.id)
                     token.body = auth.sign(user);
@@ -50,11 +54,12 @@ module.exports ={
                     // Generar token;
                 }else{
                     token.auth = false
+                    throw new Error (`UNATHENTICATED`)
                 }
                 
             }  
             catch (error){
-                errorHandler(error)
+                errorHandler(error, 'Error Signing In')
             }
             return token
         },
@@ -67,7 +72,8 @@ module.exports ={
                 // user = await db.collection('users').findOne({_id : ObjectID(id)})
                 // console.log(user)
             }
-            catch(error){errorHandler(error)
+            catch(error){
+                errorHandler(error)
             }
             return user
         },
