@@ -5,7 +5,9 @@ const compression = require('compression')
 
 require('dotenv').config()
 const {makeExecutableSchema} = require('@graphql-tools/schema')
-const gqlMiddleware = require('express-graphql')
+const {createHandler} = require('graphql-http/lib/use/express')
+const expressPlayground = require('graphql-playground-middleware-express')
+  .default
 const port = process.env.port || 8080
 
 const {readFileSync, statSync, createReadStream} = require('fs')
@@ -63,13 +65,14 @@ const typeDefs = readFileSync(
 
 const schema = makeExecutableSchema({typeDefs, resolvers})
 
-app.use('/api', gqlMiddleware.graphqlHTTP({
+app.use('/api', createHandler({
     schema: schema,
     rootValue: resolvers,
     graphiql: true
 }))
 
 
+app.get('/playground', expressPlayground({ endpoint: '/api' }));
 
 // app.use(express.static(join(__dirname, 'build')))
 
